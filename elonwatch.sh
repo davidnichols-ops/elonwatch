@@ -12,11 +12,13 @@ INTRO="$DIR/intro.mp4"
 if [[ -f "$INTRO" ]]; then
     # Ensure mpv is available
     if ! command -v mpv &>/dev/null; then
-        echo ">> mpv not found — installing via Homebrew ..."
-        if ! command -v brew &>/dev/null; then
-            echo ">> Homebrew not found. Skipping video intro."
+        if [[ "$(uname)" == "Darwin" ]]; then
+            echo ">> mpv not found — installing via Homebrew ..."
+            if command -v brew &>/dev/null; then
+                brew install --quiet mpv
+            fi
         else
-            brew install --quiet mpv
+            echo ">> mpv not found — run install-ubuntu.sh to install it."
         fi
     fi
 

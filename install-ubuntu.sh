@@ -10,10 +10,14 @@ echo "║  ELONWATCH // FUTURE SYNC  —  Ubuntu Setup  ║"
 echo "╚══════════════════════════════════════════════╝"
 echo ""
 
-# ── Python check ──────────────────────────────────────────────────────────
-if ! command -v python3 &>/dev/null; then
-    echo ">> Installing python3 ..."
-    sudo apt-get update -qq && sudo apt-get install -y python3 python3-pip python3-venv
+# ── System deps ───────────────────────────────────────────────────────────
+PKGS=()
+command -v python3 &>/dev/null || PKGS+=(python3 python3-pip python3-venv)
+command -v mpv    &>/dev/null || PKGS+=(mpv)
+
+if [ ${#PKGS[@]} -gt 0 ]; then
+    echo ">> Installing: ${PKGS[*]} ..."
+    sudo apt-get update -qq && sudo apt-get install -y "${PKGS[@]}"
 fi
 
 # ── Virtualenv ────────────────────────────────────────────────────────────
