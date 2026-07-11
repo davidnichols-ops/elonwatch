@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+*.spec
+elonwatch.db
+elonwatch.log
+launchd_stdout.log
+launchd_stderr.log
+ElonWatch.iconset/
+*.icns

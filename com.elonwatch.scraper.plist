@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.elonwatch.scraper</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/david/elonwatch/venv/bin/python3</string>
+        <string>/Users/david/elonwatch/scrape_worker.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/david/elonwatch</string>
+
+    <key>StartInterval</key>
+    <integer>3600</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/david/elonwatch/launchd_stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/david/elonwatch/launchd_stderr.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/david/elonwatch/venv/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+</dict>
+</plist>
