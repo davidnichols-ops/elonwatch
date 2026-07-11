@@ -196,11 +196,13 @@ class ElonWatchMenuBar(rumps.App):
 
     # ── Launch TUI ────────────────────────────────────────────────────────
     def launch_tui(self, _sender) -> None:
-        """Open a new Terminal window running the TUI."""
+        """Open a new Terminal window: plays intro video then launches TUI."""
+        launcher = os.path.join(APP_DIR, "elonwatch.sh")
+        # Use the shell launcher so the video intro fires before the TUI
         script = f'''
         tell application "Terminal"
             activate
-            do script "{VENV_PYTHON} {TUI_SCRIPT}"
+            do script "bash \\"{launcher}\\""
         end tell
         '''
         try:
@@ -209,7 +211,7 @@ class ElonWatchMenuBar(rumps.App):
             logger.error(f"Failed to launch TUI: {e}")
             rumps.alert(
                 title="ElonWatch",
-                message=f"Could not open Terminal.\n\nRun manually:\n{VENV_PYTHON} {TUI_SCRIPT}",
+                message=f"Could not open Terminal.\n\nRun manually:\nbash {launcher}",
             )
 
 

@@ -11,3 +11,4 @@ launchd_stdout.log
 launchd_stderr.log
 ElonWatch.iconset/
 *.icns
+dmg_bg_raw.png

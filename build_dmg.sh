@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # build_dmg.sh - Build ElonWatch.app + ElonWatch.dmg
-# Creates a self-contained .app bundle and wraps it in a DMG.
+# Creates a self-contained .app bundle and wraps it in a styled DMG.
 set -e
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,7 +9,8 @@ cd "$DIR"
 APP_NAME="ElonWatch"
 APP_VERSION="2.0"
 APP_BUNDLE="$DIR/dist/${APP_NAME}.app"
-DMG_PATH="$DIR/dist/${APP_NAME}.dmg"
+DMG_FINAL="$DIR/dist/${APP_NAME}.dmg"
+DMG_TEMP="$DIR/dist/${APP_NAME}_tmp.dmg"
 STAGING="$DIR/dist/dmg_staging"
 PYTHON="$DIR/venv/bin/python3"
 
@@ -18,12 +19,12 @@ echo "║   ELONWATCH // FUTURE SYNC  —  DMG BUILDER  ║"
 echo "╚══════════════════════════════════════════════╝"
 echo ""
 
-# ── 1. Clean old build ─────────────────────────────────────────────────────
+# ── 1. Clean old build ────────────────────────────────────────────────────────
 echo ">> Cleaning dist/ ..."
 rm -rf "$DIR/dist" "$DIR/build" "$DIR/__pycache__"
 mkdir -p "$DIR/dist"
 
-# ── 2. PyInstaller — build the menubar .app ───────────────────────────────
+# ── 2. PyInstaller ────────────────────────────────────────────────────────────
 echo ">> Running PyInstaller (menubar.app) ..."
 source "$DIR/venv/bin/activate"
 
@@ -42,6 +43,8 @@ pyinstaller \
   --add-data "$DIR/notify.py:." \
   --add-data "$DIR/tui.py:." \
   --add-data "$DIR/scrape_worker.py:." \
+  --add-data "$DIR/intro.mp4:." \
+  --add-data "$DIR/elonwatch.sh:." \
   --hidden-import rumps \
   --hidden-import feedparser \
   --hidden-import bs4 \
@@ -51,26 +54,24 @@ pyinstaller \
   --osx-bundle-identifier "com.elonwatch.futuresync" \
   "$DIR/menubar.py"
 
-echo ">> PyInstaller done. App bundle: $APP_BUNDLE"
+echo ">> PyInstaller done."
 
-# ── 3. Inject a copy of the venv DB path + elonwatch.db ──────────────────
-# The app stores its DB in ~/Library/Application Support/ElonWatch/
-# We patch the db.py inside the bundle to use that path.
+# Copy launchd plist into bundle Resources
 RESOURCES="$APP_BUNDLE/Contents/Resources"
 mkdir -p "$RESOURCES"
-
-# Copy the launchd plist for reference
 cp "$DIR/com.elonwatch.scraper.plist" "$RESOURCES/"
 
-# ── 4. Create DMG staging ─────────────────────────────────────────────────
-echo ">> Creating DMG staging area ..."
+# ── 3. Build a read-write DMG for styling ─────────────────────────────────────
+echo ">> Creating styled DMG staging ..."
 mkdir -p "$STAGING"
 cp -r "$APP_BUNDLE" "$STAGING/"
-
-# Add a symlink to /Applications for drag-install
 ln -sf /Applications "$STAGING/Applications"
 
-# Add a README
+# Hide a .background folder with our cinematic still
+mkdir -p "$STAGING/.background"
+cp "$DIR/dmg_background.png" "$STAGING/.background/background.png"
+
+# Add README
 cat > "$STAGING/README.txt" << 'EOF'
 ELONWATCH // FUTURE SYNC  v2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -79,18 +80,10 @@ INSTALL
   Drag ElonWatch.app to the Applications folder.
   Double-click to launch.
 
-WHAT IT DOES
-  ◈ Scrapes Elon's tweets (via nitter.net), Google News,
-    and Reddit every hour automatically.
-  ◈ Classifies every signal by domain (SPACE / AI / POLITICS /
-    MONEY / TECH / CHAOS / EGO / CULTURE), urgency, and
-    sentiment in real time.
-  ◈ Sends macOS push notifications for new tweets and
-    high-urgency signals.
-  ◈ Lives in your menubar — click ◈ for stats.
-  ◈ Opens a full-screen cyberpunk TUI via "Open TUI Console".
+ON FIRST LAUNCH
+  Video intro plays fullscreen (mpv auto-installs via Homebrew
+  if not present), then the cyberpunk TUI opens.
 
-FIRST RUN NOTE
   macOS may show a security warning (unsigned app).
   Right-click ElonWatch.app → Open → Open to bypass.
 
@@ -100,23 +93,67 @@ DATA
 
 EOF
 
-# ── 5. Build the DMG ──────────────────────────────────────────────────────
-echo ">> Building DMG ..."
+# ── 4. Create temp RW DMG, set background + icon layout via AppleScript ───────
+echo ">> Building temp RW DMG for styling ..."
 hdiutil create \
   -volname "ElonWatch — Future Sync" \
   -srcfolder "$STAGING" \
   -ov \
+  -format UDRW \
+  -size 200m \
+  "$DMG_TEMP"
+
+# Mount it
+MOUNT_DIR="$(mktemp -d)"
+hdiutil attach "$DMG_TEMP" -mountpoint "$MOUNT_DIR" -noautoopen -quiet
+
+echo ">> Applying DMG background + icon layout ..."
+osascript << APPLESCRIPT || true
+tell application "Finder"
+  tell disk "ElonWatch \u2014 Future Sync"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set the bounds of container window to {100, 100, 760, 500}
+    set theViewOptions to the icon view options of container window
+    set arrangement of theViewOptions to not arranged
+    set icon size of theViewOptions to 100
+    set background picture of theViewOptions to file ".background:background.png"
+    set position of item "ElonWatch.app" of container window to {170, 200}
+    set position of item "Applications" of container window to {490, 200}
+    close
+    open
+    update without registering applications
+    delay 2
+  end tell
+end tell
+APPLESCRIPT
+
+# Copy icon for DMG volume (SetFile is optional — only present with Xcode CLT extra pkg)
+cp "$DIR/ElonWatch.icns" "$MOUNT_DIR/.VolumeIcon.icns" 2>/dev/null || true
+SetFile -c icnC "$MOUNT_DIR/.VolumeIcon.icns" 2>/dev/null || true
+SetFile -a C "$MOUNT_DIR" 2>/dev/null || true
+
+sync
+hdiutil detach "$MOUNT_DIR" -quiet || hdiutil detach "$MOUNT_DIR" -force || true
+
+# ── 5. Convert to final compressed read-only DMG ─────────────────────────────
+echo ">> Compressing to final DMG ..."
+hdiutil convert "$DMG_TEMP" \
   -format UDZO \
   -imagekey zlib-level=9 \
-  "$DMG_PATH"
+  -o "$DMG_FINAL"
+
+rm -f "$DMG_TEMP"
 
 echo ""
 echo "╔══════════════════════════════════════════════╗"
 echo "║   BUILD COMPLETE                             ║"
 echo "╚══════════════════════════════════════════════╝"
 echo ""
-echo "  DMG:  $DMG_PATH"
-echo "  APP:  $APP_BUNDLE"
+echo "  DMG: $DMG_FINAL"
+echo "  APP: $APP_BUNDLE"
 echo ""
-echo "  Install: open $DMG_PATH"
+echo "  Install: open $DMG_FINAL"
 echo ""
