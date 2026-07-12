@@ -1,130 +1,202 @@
-<p align="center">
-  <img src="icon.png" width="180" alt="ElonWatch Logo" />
-</p>
+# ElonWatch // Future Sync
 
-<h1 align="center">ELONWATCH // FUTURE SYNC</h1>
-<p align="center"><em>Real-time consciousness feed for Elon Musk signal intelligence</em></p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Ubuntu-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/python-3.10%2B-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/API%20keys-zero-cyan?style=flat-square" />
-  <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
-</p>
+> *Real-time Elon Musk consciousness mapping, signal intelligence, and live thought-stream decoding.*
+>
+> Yes, someone built this.
 
 ---
 
-ElonWatch scrapes every tweet, news article, and Reddit post about Elon Musk every hour — then runs every item through a live classification engine that decodes **domain** (SPACE / AI / POLITICS / MONEY / CHAOS ...), **signal type** (DIRECTIVE / VISION / REACTION / HUMOR), **urgency** (0–10), and **sentiment**. The result is a real-time consciousness feed displayed in a cyberpunk TUI, with macOS push notifications for new tweets and high-signal items.
+## What is this
 
-Zero API keys. Zero subscriptions. Pure open-source signal.
+ElonWatch is a fully automated news aggregator that monitors Twitter/X, Google News, and Reddit 24/7 for Elon Musk content, classifies each piece of coverage by domain, urgency, and sentiment using a rule-based ML-adjacent brain engine, and displays everything in a cinematic terminal-aesthetic macOS app.
+
+It was built because someone found the idea of a system that treats "what is Elon Musk thinking right now" as a serious intelligence problem genuinely hilarious. The result is technically sound and works exactly as described. The fact that it works exactly as described is part of the joke.
 
 ---
 
 ## Features
 
-| | |
-|---|---|
-| **Sources** | Twitter/X via nitter.net · Google News RSS · Reddit (r/elonmusk, r/spacex, r/teslamotors, r/neuralink) |
-| **Brain engine** | Domain classifier · Signal/noise scorer · Urgency 0–10 · Sentiment analysis |
-| **TUI** | Cyberpunk Future Sync terminal — domain pulse bars, consciousness feed, signal brain panel, scrolling ticker |
-| **macOS** | Menubar app (◈) + push notifications + hourly launchd scraper + DMG installer |
-| **Ubuntu** | TUI + systemd hourly timer |
-| **Storage** | SQLite, zero config |
+### macOS (Native SwiftUI App)
+- Cinematic intro video on launch (plays `intro.mp4`, transitions to main UI)
+- Live feed of all Elon-related signals across Twitter/X, Google News, and Reddit
+- **FEED tab**: full classified signal stream with urgency indicators, domain tags, sentiment scoring
+- **GLAZE tab**: filters to only positive/praise coverage — a dedicated view for detecting when people are "glazing" him. Shows a real-time GLAZE INTENSITY bar. Yes, this is a real feature.
+- Domain pulse bar with animated waveforms: SPACE / AI / POLITICS / MONEY / TECH / CHAOS / EGO / CULTURE
+- Right panel: Signal Brain (domain breakdown, signal type distribution, sentiment mix, avg urgency), Source Counts, Sync Engine
+- Scrolling amber ticker at the bottom showing high-urgency items
+- Embedded Python scraper binary — runs as a subprocess, no Python install required
+- Auto-sync every 15 minutes, manual "SYNC NOW" button
+- macOS notifications for high-urgency items (urgency ≥ 7)
+- Ships as a drag-to-Applications `.dmg` with a cinematic background
+
+### Ubuntu / Linux (TUI)
+- Terminal UI using `rich` — tables, panels, live refresh
+- Same scraper and classification engine
+- `mpv`-based video intro sequence before the TUI loads
+- `systemd` service for background scraping
 
 ---
 
-## Install
+## Installation
 
-### macOS (DMG)
+### macOS (Recommended)
 
-1. Download `ElonWatch.dmg` from [Releases](../../releases)
-2. Open DMG → drag `ElonWatch.app` to `/Applications`
-3. Right-click → **Open** (first launch, bypasses Gatekeeper on unsigned app)
+```
+# Download ElonWatch.dmg
+# Drag ElonWatch.app to Applications
+# Launch from Applications or Spotlight
+```
 
-The app lives in your menubar as `◈`. Click it to see stats, trigger a sync, or open the full TUI console.
+The app is self-contained. No Python, no Homebrew, no dependencies.
 
-### macOS (from source)
+### Ubuntu
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/elonwatch.git
+git clone https://github.com/davidnichols-ops/elonwatch.git
 cd elonwatch
-python3 -m venv venv && source venv/bin/activate
-pip install -r requirements-macos.txt
-
-# Hourly background scraper via launchd
-bash install.sh
-
-# Launch TUI
-bash elonwatch.sh
-
-# Launch menubar app
-bash elonwatch_menubar.sh
+bash install-ubuntu.sh
 ```
 
-### Ubuntu / Linux
+---
+
+## How it works
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    SCRAPER LAYER                        │
+│  Python scraper → Twitter/X · Google News · Reddit     │
+│  Writes to SQLite: ~/Library/Application Support/       │
+│                    ElonWatch/elonwatch.db               │
+└───────────────────────────┬─────────────────────────────┘
+                            │ every 15min
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│                     BRAIN LAYER                         │
+│  Domain classifier  → SPACE / AI / POLITICS / etc.     │
+│  Signal type scorer → DIRECTIVE / VISION / HUMOR / etc │
+│  Urgency scorer     → 0-10 (BREAKING = 10)             │
+│  Sentiment scorer   → BULLISH / BEARISH / HOSTILE / ..  │
+│  Glaze detector     → bullish + praise keywords        │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│                      UI LAYER                           │
+│  SwiftUI macOS app reads DB, scores on the fly,        │
+│  renders live feed + glaze tab + brain stats panel     │
+└─────────────────────────────────────────────────────────┘
+```
+
+### The Brain
+
+The classifier (`brain.py` / `Database.swift`) uses keyword frequency matching across eight domains. It's not a neural network. It's a pile of if-statements dressed up with the word "brain." It works surprisingly well for this use case because Elon Musk content is highly domain-predictable.
+
+### The Glaze Tab
+
+Filters the full feed to items where:
+1. Sentiment is `BULLISH`
+2. Title or content contains any of: *genius, visionary, incredible, revolutionary, legend, goat, hero, praised, inspired, outstanding, historic, remarkable,* and ~25 more glaze-positive terms
+
+Each match gets a ✦✦✦✦✦ star rating based on urgency. The GLAZE INTENSITY bar fills as the proportion of glazing content rises. "MAX — ASTRONOMICAL GLAZE" is a real system state.
+
+### Urgency Scoring
+
+| Score | Indicator | Meaning |
+|-------|-----------|---------|
+| 9-10  | `!!`      | Breaking / emergency |
+| 7-8   | `▲▲`     | High signal |
+| 4-6   | `▲·`     | Notable |
+| 0-3   | `··`     | Background noise |
+
+---
+
+## Project Structure
+
+```
+elonwatch/             ← Python backend (scraper, TUI, brain)
+  scrape_worker.py     ← main scrape loop
+  scrapers.py          ← Twitter/X, Google News, Reddit scrapers
+  brain.py             ← classification engine
+  tui.py               ← Ubuntu TUI
+  db.py                ← SQLite interface
+  install-ubuntu.sh    ← Ubuntu installer
+  install.sh           ← macOS legacy installer
+
+elonwatch-mac/         ← SwiftUI macOS app
+  Sources/ElonWatch/
+    ElonWatchApp.swift      ← app entry, intro gate
+    IntroPlayerView.swift   ← AVPlayerLayer splash screen
+    ContentView.swift       ← full UI: feed, glaze, brain panel
+    FeedViewModel.swift     ← data layer, refresh logic
+    Database.swift          ← Swift port of brain.py + SQLite reader
+    Models.swift            ← SignalItem, Domain, Sentiment, etc.
+    ScraperRunner.swift     ← launches embedded scraper subprocess
+  Resources/
+    intro.mp4               ← the cinematic intro
+    elonwatch_scraper       ← compiled Python scraper (PyInstaller)
+    AppIcon.icns
+  build_dmg.sh             ← dmgbuild-based DMG packaging
+  dmg_settings.py          ← DMG window layout, background config
+  project.yml              ← XcodeGen project spec
+```
+
+---
+
+## Building from Source
+
+### macOS App
+
+Requirements: Xcode 26+, XcodeGen, ffmpeg (optional, for video editing)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/elonwatch.git
+cd elonwatch-mac
+
+# Generate Xcode project
+xcodegen generate
+
+# Build
+xcodebuild -project ElonWatch.xcodeproj -scheme ElonWatch \
+  -configuration Release -derivedDataPath build \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""
+
+# Inject resources (scraper binary + video)
+cp Sources/ElonWatch/Resources/elonwatch_scraper \
+   build/Build/Products/Release/ElonWatch.app/Contents/Resources/
+cp Sources/ElonWatch/Resources/intro.mp4 \
+   build/Build/Products/Release/ElonWatch.app/Contents/Resources/
+
+# Build DMG
+bash build_dmg.sh
+```
+
+### Rebuilding the Scraper Binary
+
+```bash
 cd elonwatch
-bash install-ubuntu.sh   # sets up venv + systemd timer
-
-bash elonwatch.sh        # launch TUI
+pip install pyinstaller
+pyinstaller --onefile scrape_worker.py -n elonwatch_scraper
+cp dist/elonwatch_scraper ../elonwatch-mac/Sources/ElonWatch/Resources/
 ```
 
 ---
 
-## TUI Keybinds
+## Repos
 
-| Key | Action |
-|-----|--------|
-| `a` | All sources |
-| `t` | Twitter/X only |
-| `n` | Google News only |
-| `r` | Reddit only |
-| `c` | CHAOS domain filter |
-| `p` | SPACE domain filter |
-| `i` | AI domain filter |
-| `s` | Trigger scrape now |
-| `?` | Glitch message |
-| `q` | Quit |
+- **Backend / Ubuntu**: [github.com/davidnichols-ops/elonwatch](https://github.com/davidnichols-ops/elonwatch)
+- **macOS App**: [github.com/davidnichols-ops/elonwatch-mac](https://github.com/davidnichols-ops/elonwatch-mac)
 
 ---
 
-## Architecture
+## Honest disclaimer
 
-```
-elonwatch/
-├── tui.py              # Future Sync TUI (textual)
-├── menubar.py          # macOS menubar app (rumps)  [macOS only]
-├── scrapers.py         # Nitter · Google News · Reddit scrapers
-├── brain.py            # Signal classification engine
-├── db.py               # SQLite storage
-├── notify.py           # macOS push notifications  [macOS only]
-├── scrape_worker.py    # Standalone worker for launchd / systemd
-├── install.sh          # macOS launchd installer
-├── install-ubuntu.sh   # Ubuntu systemd installer
-├── build_dmg.sh        # Rebuild DMG (macOS)
-├── requirements-macos.txt
-└── requirements-ubuntu.txt
-```
+This project does not endorse, oppose, celebrate, or condemn Elon Musk. It monitors him the way a seismologist monitors a volcano — because if you're going to live near it, you might as well have instruments.
 
-**Data sources — all free, no keys required:**
+The "GLAZE" tab was added because positive coverage of extremely powerful people follows identifiable patterns worth documenting. Also because naming a feature "GLAZE WATCH" with a glaze intensity bar is objectively funny.
 
-- **Twitter/X** — scraped via public [nitter.net](https://nitter.net) RSS feeds for `@elonmusk`, `@SpaceX`, `@Tesla`, `@xai`, `@boring_company`
-- **Google News** — RSS feeds for 7 search queries
-- **Reddit** — RSS from r/elonmusk, r/spacex, r/teslamotors, r/neuralink, and search
-
----
-
-## Notifications
-
-Push notifications fire for:
-- Any new tweet from **@elonmusk** directly
-- Any item scoring **urgency ≥ 7** (high signal)
-- Any item classified as **CHAOS** domain
+The intro video plays every time you open the app. This was a deliberate choice.
 
 ---
 
 ## License
 
-MIT
+MIT. Fork it. Add more domains. Build a "RATIO WATCH" tab for people dunking on him. Go nuts.
