@@ -218,6 +218,19 @@ def classify_domain(text: str) -> tuple[str, list[str]]:
         if hits:
             scores[domain] = len(hits)
             matched_tags[domain] = hits
+
+    # GLAZE only fires when sentiment is genuinely bullish AND it clearly
+    # outscores every other domain. Negative articles that mention "genius"
+    # or "visionary" in a critical context must not land in GLAZE.
+    if "GLAZE" in scores:
+        sentiment = classify_sentiment(text)
+        runner_up = max(
+            (v for k, v in scores.items() if k != "GLAZE"), default=0
+        )
+        if sentiment != "BULLISH" or scores["GLAZE"] <= runner_up:
+            del scores["GLAZE"]
+            matched_tags.pop("GLAZE", None)
+
     if not scores:
         return "CULTURE", []
     best = max(scores, key=lambda d: scores[d])
