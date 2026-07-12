@@ -39,7 +39,7 @@ GLITCH_CHARS = "▓▒░█▄▀■□▪▫◈◉◎●○◆◇★☆⬡⬢�
 SCAN_CHARS   = "─━┄┈╌╍═╼╾"
 PULSE_FRAMES = ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█", "▉", "▊", "▋", "▌", "▍", "▎"]
 
-DOMAIN_ORDER = ["SPACE", "AI", "POLITICS", "MONEY", "TECH", "CHAOS", "EGO", "CULTURE"]
+DOMAIN_ORDER = ["SPACE", "AI", "POLITICS", "MONEY", "TECH", "CHAOS", "EGO", "CULTURE", "GLAZE"]
 
 BOOT_LINES = [
     ("", 0.05),
@@ -76,6 +76,7 @@ DOMAIN_PULSE_COLOR = {
     "CULTURE":  "white",
     "EGO":      "yellow",
     "CHAOS":    "bright_red",
+    "GLAZE":    "bright_yellow",
 }
 
 URGENCY_BAR_COLOR = {
@@ -316,9 +317,9 @@ class DomainPulseBar(Static):
             icon = DOMAIN_ICONS[domain]
             bar = pulse * bar_len + "░" * (14 - bar_len)
             parts.append(f"[{color}]{icon} {domain[:5]:<5} [{bar}] {cnt:>3}[/]")
-        # two rows of 4
-        row1 = "  ".join(parts[:4])
-        row2 = "  ".join(parts[4:])
+        # two rows: 5 + 4 (9 domains total)
+        row1 = "  ".join(parts[:5])
+        row2 = "  ".join(parts[5:])
         self.update(f"{row1}\n{row2}")
 
 
@@ -334,13 +335,14 @@ class FilterBar(Static):
 
     def _render(self) -> None:
         opts = {
-            "ALL":      ("[bold bright_white]ALL[/]",     "[a]"),
-            "twitter":  ("[bold cyan]TWITTER[/]",          "[t]"),
-            "google-news": ("[bold yellow]NEWS[/]",        "[n]"),
-            "reddit":   ("[bold magenta]REDDIT[/]",        "[r]"),
-            "CHAOS":    ("[bold bright_red]CHAOS[/]",      "[c]"),
-            "SPACE":    ("[bold bright_cyan]SPACE[/]",     "[p]"),
-            "AI":       ("[bold bright_magenta]AI[/]",     "[i]"),
+            "ALL":         ("[bold bright_white]ALL[/]",       "[a]"),
+            "twitter":     ("[bold cyan]TWITTER[/]",           "[t]"),
+            "google-news": ("[bold yellow]NEWS[/]",            "[n]"),
+            "reddit":      ("[bold magenta]REDDIT[/]",         "[r]"),
+            "CHAOS":       ("[bold bright_red]CHAOS[/]",       "[c]"),
+            "SPACE":       ("[bold bright_cyan]SPACE[/]",      "[p]"),
+            "AI":          ("[bold bright_magenta]AI[/]",      "[i]"),
+            "GLAZE":       ("[bold bright_yellow]✦ GLAZE[/]",  "[g]"),
         }
         parts = []
         for key, (label, hotkey) in opts.items():
@@ -585,6 +587,7 @@ class FutureSyncApp(App):
         Binding("c",   "filter_chaos",   "CHAOS"),
         Binding("p",   "filter_space",   "SPACE"),
         Binding("i",   "filter_ai",      "AI"),
+        Binding("g",   "filter_glaze",   "GLAZE"),
         Binding("s",   "scrape_now",     "SCRAPE NOW"),
         Binding("?",   "glitch",         "GLITCH"),
     ]
@@ -734,6 +737,7 @@ class FutureSyncApp(App):
     def action_filter_chaos(self)   -> None: self._set_filter(None, "CHAOS", "CHAOS")
     def action_filter_space(self)   -> None: self._set_filter(None, "SPACE", "SPACE")
     def action_filter_ai(self)      -> None: self._set_filter(None, "AI", "AI")
+    def action_filter_glaze(self)   -> None: self._set_filter(None, "GLAZE", "GLAZE")
     def action_scrape_now(self)     -> None: self._next_scrape_ts = time.time()
 
     def action_glitch(self) -> None:

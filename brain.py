@@ -68,6 +68,16 @@ DOMAIN_KEYWORDS = {
         "ban", "block", "suspended", "deleted", "outrage", "scandal",
         "controversy", "backlash", "meltdown", "breaking",
     ],
+    "GLAZE": [
+        "genius", "visionary", "brilliant", "incredible", "amazing", "greatest",
+        "legendary", "icon", "hero", "pioneer", "revolutionary", "goat",
+        "inspires", "inspiring", "admire", "praise", "praises", "praised",
+        "thank elon", "love elon", "grateful", "thank you elon", "saved",
+        "changed my life", "changed the world", "only elon", "elon is right",
+        "elon deserves", "respect elon", "support elon", "proud of elon",
+        "well done elon", "remarkable", "outstanding", "historic achievement",
+        "congrat", "elon wins", "elon nailed",
+    ],
 }
 
 # ── Signal type patterns ───────────────────────────────────────────────────────
@@ -142,6 +152,7 @@ DOMAIN_ICONS = {
     "CULTURE":  "◉",
     "EGO":      "★",
     "CHAOS":    "!!",
+    "GLAZE":    "✦",
 }
 
 DOMAIN_COLORS = {
@@ -153,6 +164,7 @@ DOMAIN_COLORS = {
     "CULTURE":  "white",
     "EGO":      "yellow",
     "CHAOS":    "bright_red",
+    "GLAZE":    "bright_yellow",
 }
 
 SIGNAL_COLORS = {
